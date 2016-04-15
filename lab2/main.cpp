@@ -9,7 +9,7 @@ Config *conf;
 
 int main()
 {
-	int sig;
+  int sig;
 	printf("Parent pid = %d\n", getpid());
 
 	conf = new Config();
