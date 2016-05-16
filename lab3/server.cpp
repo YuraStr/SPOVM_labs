@@ -9,7 +9,16 @@
 #define NAMEDPIPE_NAME "/tmp/my_named_pipe"
 #define BUFSIZE 50
 
+#elif _WIN32
+#include <Windows.h>
+#include <stdio.h>
+
+#define NAMEDPIPE_NAME "\\\\.\\pipe\\Pipe"
+#define BUFSIZE 80
+#endif
+
 int main (int argc, char ** argv) {
+#ifdef __linux__
   pid_t pid;
   int fd, len;
   char buf[BUFSIZE];
@@ -34,19 +43,7 @@ int main (int argc, char ** argv) {
   
   close(fd);
   remove(NAMEDPIPE_NAME);
-
-  return 0;
-}
-
 #elif _WIN32
-#include <Windows.h>
-#include <stdio.h>
-
-#define NAMEDPIPE_NAME "\\\\.\\pipe\\Pipe"
-#define BUFSIZE 80
-
-int main()
-{
   HANDLE hPipe;
   char buffer[BUFSIZE];
   DWORD dwRead;
@@ -61,8 +58,8 @@ int main()
                           NULL);
 
   printf("Server: start\n");
-  if (ConnectNamedPipe(hPipe, NULL) != FALSE) {  // wait for someone to connect to the pipe
-	printf("New pipe was connected\n");
+  if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
+  printf("New pipe was connected\n");
     while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &dwRead, NULL) != FALSE) {
       buffer[dwRead] = '\0';
       printf("Recieved: %s\n", buffer);
@@ -72,7 +69,6 @@ int main()
   DisconnectNamedPipe(hPipe);
 
   CloseHandle(hPipe);
-
+#endif
   return 0;
 }
-#endif

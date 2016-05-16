@@ -5,11 +5,21 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#elif _WIN32
+#include <stdio.h>
+#include <windows.h>
+#endif
 
+#ifdef __linux__
 #define NAMEDPIPE_NAME "/tmp/my_named_pipe"
 #define BUFSIZE 50
+#elif _WIN32
+#define NAMEDPIPE_NAME "\\\\.\\pipe\\Pipe"
+#define BUFSIZE 80
+#endif
 
 int main (int argc, char ** argv) {
+#ifdef __linux__ 
   int fd;
   char buf[BUFSIZE];
 
@@ -18,7 +28,6 @@ int main (int argc, char ** argv) {
     return 1;
   }
 
-  printf("Client: start\n");
   while(1) {
     memset(buf, '\0', BUFSIZE);
     printf ("Enter message: ");
@@ -29,17 +38,7 @@ int main (int argc, char ** argv) {
 
   close(fd);
 
-  return 0;
-}
 #elif _WIN32
-#include <stdio.h>
-#include <windows.h>
-
-#define NAMEDPIPE_NAME "\\\\.\\pipe\\Pipe"
-#define BUFSIZE 80
-
-int main(void)
-{
   HANDLE hPipe;
   DWORD dwWritten;
   char buf[80];
@@ -58,14 +57,13 @@ int main(void)
       scanf("%s", buf);
       WriteFile(hPipe,
                 buf,
-                strlen(buf),   // = length of string + terminating '\0' !!!
+                strlen(buf),
                 &dwWritten,
                 NULL);
       if (!strcmp(buf, "exit")) break;
     }
     CloseHandle(hPipe);
   }
-
-  return (0);
-}
 #endif
+  return 0;
+}
